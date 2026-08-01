@@ -1,0 +1,67 @@
+{
+  "name": "pi-cliproxiapi-auth",
+  "version": "1.0.0",
+  "description": "Pi-mono (omp) extension for CLIProxyAPI — connect, /v1/models discovery, models.json + models.dev enrichment",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./runtime": {
+      "import": "./dist/runtime.js",
+      "types": "./dist/runtime.d.ts"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "clean": "node -e \"const fs=require('fs');if(fs.existsSync('dist'))fs.rmSync('dist',{recursive:true});\"",
+    "test": "npm run build && node --test test/normalizer.test.mjs test/models.test.mjs test/models-json.test.mjs test/models-dev.test.mjs test/logger.test.mjs test/config-store.test.mjs test/extension.test.mjs",
+    "test:integration": "npm run build && CLIPROXY_INTEGRATION=1 node --test test/integration.test.mjs",
+    "check:exports": "node --input-type=module -e \"import('./dist/index.js').then((m)=>{if(typeof m.default!=='function'){throw new Error('Default export must be a function (OMP extension factory)');}})\"",
+    "prepublishOnly": "npm run clean && npm run build && npm run check:exports"
+  },
+  "keywords": [
+    "pi",
+    "pi-mono",
+    "omp",
+    "earendil-works",
+    "extension",
+    "cliproxy",
+    "cliproxyapi",
+    "cli-proxy-api",
+    "authentication",
+    "api-key",
+    "models"
+  ],
+  "author": "Ruslan Gainanov",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/GRomR1/pi-cliproxiapi-auth.git"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "pi": {
+    "extensions": [
+      "./dist/index.js"
+    ]
+  },
+  "devDependencies": {
+    "@earendil-works/pi-coding-agent": "^0.80.7",
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0"
+  },
+  "engines": {
+    "node": ">=22.14.0"
+  }
+}
