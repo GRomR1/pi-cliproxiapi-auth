@@ -211,6 +211,34 @@ npm run prepublishOnly     # clean + build + check:exports
 Test files live in `test/`. They import from `dist/`, so `npm test` always
 runs the latest compiled output.
 
+## Releasing
+
+```bash
+# 1. Bump version (updates package.json)
+npm version patch --no-git-tag-version   # 1.0.2 → 1.0.3
+# or: npm version minor --no-git-tag-version
+# or: npm version major --no-git-tag-version
+
+# 2. Update CHANGELOG.md — move [Unreleased] items into new version section
+
+# 3. Commit
+git add -A
+git commit -m "release: v1.0.3"
+
+# 4. Tag and push (push tag separately!)
+git tag v1.0.3
+git push origin v1.0.3
+
+# 5. Push branch
+git push origin master
+```
+
+CI publishes to npm automatically via OIDC trusted publishing. Check status:
+
+```bash
+gh run list --workflow=publish.yml --limit 3
+```
+
 ## License
 
 MIT — see [LICENSE](./LICENSE).
