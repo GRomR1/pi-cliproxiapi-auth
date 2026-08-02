@@ -13,7 +13,7 @@ discover models from `/v1/models` with enrichment from CLIProxyAPI's
 
 ## Features
 
-- **`/cliproxy-connect`** — interactive setup (base URL + optional API key), persisted to `~/.pi/agent/cliproxy.json`
+- **`/cliproxy-connect`** — interactive setup (base URL + optional API key), persisted to `~/.local/share/pi/agent/cliproxy.json`
 - **Provider `cliproxy`** — auto-registered with the live model list
 - **Dynamic models** — fetched from CLIProxyAPI `/v1/models` with TTL cache and singleflight dedup
 - **models.json enrichment** — defaults to the CLIProxyAPI registry URL; override with a local path or custom URL
@@ -101,7 +101,7 @@ Prompts:
 | Base URL | `http://localhost:8317/v1` | Include `/v1` suffix |
 | API key | *(empty)* | Optional if CLIProxyAPI has no `api-keys` |
 
-Credentials are stored in `~/.pi/agent/cliproxy.json`.
+Credentials are stored in `~/.local/share/pi/agent/cliproxy.json`.
 
 ### 3. Verify models
 
@@ -130,7 +130,7 @@ pi -m cliproxy/gpt-5.4-mini
 
 The runtime reads (in order of precedence):
 
-1. `~/.pi/agent/cliproxy.json` (written by `/cliproxy-connect`)
+1. `~/.local/share/pi/agent/cliproxy.json` (written by `/cliproxy-connect`)
 2. `CLIPROXY_BASE_URL` and `CLIPROXY_API_KEY` environment variables
 3. Built-in defaults (`http://localhost:8317/v1`, no API key)
 

@@ -56,7 +56,7 @@ cp .env.example .env
 | `CLIPROXY_API_KEY` | `test/integration.test.mjs` (optional), runtime fallback if not in settings file |
 | `CLIPROXY_TEST_MODEL` | `test/integration.test.mjs` — override chat-completion test model |
 | `CLIPROXY_DEBUG=1` | `src/logger.ts` debug output |
-| `XDG_DATA_HOME` | Tests override this to redirect `~/.pi/agent/cliproxy.json` to a temp dir |
+| `XDG_DATA_HOME` | Tests override this to redirect `~/.local/share/pi/agent/cliproxy.json` to a temp dir |
 
 Integration tests load `.env` via `test/load-env.mjs` and only run when `CLIPROXY_INTEGRATION=1`.
 
@@ -76,7 +76,7 @@ No `NPM_TOKEN` GitHub secret — npm publish uses [trusted publishing](https://d
 | File | Responsibility |
 |------|----------------|
 | `src/extension.ts` | OMP extension factory. `pi.registerProvider()`, `pi.registerCommand()` for `cliproxy-connect` / `-refresh` / `-status` / `-logout`. Initial + on-demand model registration. |
-| `src/config-store.ts` | Read/write/delete `~/.pi/agent/cliproxy.json`. Path resolved lazily on every call (re-reads `XDG_DATA_HOME` / `HOME`) so tests can isolate state. |
+| `src/config-store.ts` | Read/write/delete `~/.local/share/pi/agent/cliproxy.json`. Path resolved lazily on every call (re-reads `XDG_DATA_HOME` / `HOME`) so tests can isolate state. |
 | `src/model-fetcher.ts` | Fetches `/v1/models`, merges `models.json` + models.dev, TTL cache, singleflight dedup, fallback models. |
 | `src/models-json.ts` | Loads CLIProxyAPI `models.json` from local path or URL; flattens provider buckets into `id → model` map. |
 | `src/normalizer.ts` | Normalizes API/registry fields; `thinkingToVariants()` maps `thinking.levels` → OMP reasoning levels; `toOmpModel()` emits the OMP `Model` shape. |
@@ -89,7 +89,7 @@ No `NPM_TOKEN` GitHub secret — npm publish uses [trusted publishing](https://d
 ### Auth / Settings Flow
 
 1. **`/cliproxy-connect`** — prompts for `baseURL` (default `http://localhost:8317/v1`) and optional `apiKey`.
-2. **`writeSettings()`** persists JSON to `~/.pi/agent/cliproxy.json` (`{baseURL, apiKey, modelsJsonPath?, modelsDev?}`).
+2. **`writeSettings()`** persists JSON to `~/.local/share/pi/agent/cliproxy.json` (`{baseURL, apiKey, modelsJsonPath?, modelsDev?}`).
 3. **`parseAuthKey` is gone** — credentials live in our own settings file, not in OMP's auth store.
 4. **`resolveSettings()`** (exported) merges: settings file → env vars → defaults.
 5. **baseURL priority:** settings file → `CLIPROXY_BASE_URL` → `http://localhost:8317/v1`.

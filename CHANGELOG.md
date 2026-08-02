@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `omp install` one-liner installation instructions in README.
 
+### Fixed
+
+- Documentation: correct settings file path is `~/.local/share/pi/agent/cliproxy.json`, not `~/.pi/agent/cliproxy.json`.
+
 ## [1.0.1] - 2026-08-01
 
 ### Fixed
