@@ -42,7 +42,7 @@ export function normalizeModelKey(modelId: string): string {
     .replace(/-\d{4}-\d{2}-\d{2}$/, '')
     .replace(/-v\d+$/, '')
     .replace(/-(preview|latest|stable)$/i, '')
-    .replace(/-(low|medium|high|agent|lite|extra)$/i, '')
+    .replace(/-(low|high|medium|extra)$/i, '')
     .replace(/-\d+\.\d+$/, '')
     .replace(/_/g, '-');
 }
