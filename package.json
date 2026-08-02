@@ -1,6 +1,6 @@
 {
   "name": "pi-cliproxiapi-auth",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Pi-mono (omp) extension for CLIProxyAPI — connect, /v1/models discovery, models.json + models.dev enrichment",
   "type": "module",
   "main": "./dist/index.js",

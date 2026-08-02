@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.2] - 2026-08-01
+
 ### Added
 
 - `omp install` one-liner installation instructions in README.
@@ -44,7 +46,7 @@ Initial release as a [pi-mono](https://github.com/earendil-works/pi) (OMP) exten
 
 ### Features
 
-- **`/cliproxy-connect`** — interactive setup (base URL + optional API key), persisted to `~/.pi/agent/cliproxy.json`
+- **`/cliproxy-connect`** — interactive setup (base URL + optional API key), persisted to `~/.local/share/pi/agent/cliproxy.json`
 - **Provider `cliproxy`** — auto-registered with the live model list
 - **Dynamic models** — fetched from CLIProxyAPI `/v1/models` with TTL cache and singleflight dedup
 - **models.json enrichment** — defaults to the CLIProxyAPI registry URL; override with a local path or custom URL
@@ -57,6 +59,7 @@ Initial release as a [pi-mono](https://github.com/earendil-works/pi) (OMP) exten
 - **Runtime API** — `fetchModels`, `clearModelCache`, `refreshModels`, `resolveSettings`, `readSettings`, `writeSettings`, `deleteSettings`, normalizers
 - Unit tests (42) + integration tests (6)
 
-[Unreleased]: https://github.com/GRomR1/pi-cliproxiapi-auth/compare/v1.0.1...main
+[Unreleased]: https://github.com/GRomR1/pi-cliproxiapi-auth/compare/v1.0.2...main
+[1.0.2]: https://github.com/GRomR1/pi-cliproxiapi-auth/compare/v1.0.1...v1.0.2
 [1.0.1]: https://github.com/GRomR1/pi-cliproxiapi-auth/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/GRomR1/pi-cliproxiapi-auth/releases/tag/v1.0.0
