@@ -49,6 +49,7 @@ export function normalizeModelKey(modelId: string): string {
 const DEFAULT_PROVIDER_ALIASES: Record<string, string> = {
   anthropic: 'anthropic',
   claude: 'anthropic',
+  antigravity: 'anthropic',
   openai: 'openai',
   codex: 'openai',
   google: 'google',

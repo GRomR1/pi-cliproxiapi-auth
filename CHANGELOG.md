@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Documentation: correct settings file path is `~/.local/share/pi/agent/cliproxy.json`, not `~/.pi/agent/cliproxy.json`.
+- Added `antigravity → anthropic` provider alias for CLIProxyAPI models.dev enrichment.
 
 ## [1.0.1] - 2026-08-01
 
