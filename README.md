@@ -32,10 +32,16 @@ discover models from `/v1/models` with enrichment from CLIProxyAPI's
 
 ## Installation
 
-### From npm (via pi's package loader)
+### Quick install
 
-Once published, add the package to your pi settings (`~/.pi/settings.json`
-or project-local `.pi/settings.json`):
+```bash
+omp install npm:pi-cliproxiapi-auth
+✔ Installed pi-cliproxiapi-auth@1.0.1
+```
+
+### Manual (via pi settings)
+
+Add the package to `~/.pi/settings.json` or project-local `.pi/settings.json`:
 
 ```json
 {
