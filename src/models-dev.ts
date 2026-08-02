@@ -42,6 +42,7 @@ export function normalizeModelKey(modelId: string): string {
     .replace(/-\d{4}-\d{2}-\d{2}$/, '')
     .replace(/-v\d+$/, '')
     .replace(/-(preview|latest|stable)$/i, '')
+    .replace(/-(low|medium|high|agent|lite|extra)$/i, '')
     .replace(/-\d+\.\d+$/, '')
     .replace(/_/g, '-');
 }
@@ -49,7 +50,6 @@ export function normalizeModelKey(modelId: string): string {
 const DEFAULT_PROVIDER_ALIASES: Record<string, string> = {
   anthropic: 'anthropic',
   claude: 'anthropic',
-  antigravity: 'anthropic',
   openai: 'openai',
   codex: 'openai',
   google: 'google',
@@ -59,13 +59,31 @@ const DEFAULT_PROVIDER_ALIASES: Record<string, string> = {
   xai: 'xai',
 };
 
+/** CLIProxyAPI uses "antigravity" as a catch-all owned_by. Infer real provider from model ID. */
+function inferProviderFromModelId(modelId: string): string | null {
+  const lower = modelId.toLowerCase();
+  if (lower.startsWith('claude-') || lower.startsWith('opus-') || lower.startsWith('haiku-')) return 'anthropic';
+  if (lower.startsWith('gemini-') || lower.startsWith('imagen-')) return 'google';
+  if (lower.startsWith('gpt-') || lower.startsWith('codex-') || lower.startsWith('o1-') || lower.startsWith('o3-')) return 'openai';
+  if (lower.startsWith('grok-')) return 'xai';
+  return null;
+}
+
 export function resolveProviderAlias(
   ownedBy: string | undefined,
   config?: CliproxyConfig,
+  modelId?: string,
 ): string | null {
   if (!ownedBy) return null;
   const lower = ownedBy.toLowerCase();
   const aliases = { ...DEFAULT_PROVIDER_ALIASES, ...config?.modelsDev?.providerAliases };
+
+  // CLIProxyAPI uses "antigravity" as catch-all — try to infer from model ID
+  if (lower === 'antigravity' && modelId) {
+    const inferred = inferProviderFromModelId(modelId);
+    if (inferred) return aliases[inferred] ?? inferred;
+  }
+
   return aliases[lower] ?? lower;
 }
 
@@ -202,7 +220,7 @@ export function enrichWithModelsDev(
   index: ModelsDevIndex,
   config?: CliproxyConfig,
 ): CliproxyModel {
-  const provider = resolveProviderAlias(model.ownedBy ?? model.type, config);
+  const provider = resolveProviderAlias(model.ownedBy ?? model.type, config, model.id);
   const providers = provider ? [provider] : [];
   const dev = lookupModelsDevModel(index, providers, model.id);
   if (!dev) return model;
