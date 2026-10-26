@@ -90,16 +90,16 @@ If omitted, no key is required.
 
 ### 2. Connect in pi
 
-```
+```text
 /cliproxy-connect
 ```
 
 Prompts:
 
-| Field | Default | Notes |
-|-------|---------|-------|
-| Base URL | `http://localhost:8317/v1` | Include `/v1` suffix |
-| API key | *(empty)* | Optional if CLIProxyAPI has no `api-keys` |
+| Field    | Default                    | Notes                                     |
+| -------- | -------------------------- | ----------------------------------------- |
+| Base URL | `http://localhost:8317/v1` | Include `/v1` suffix                      |
+| API key  | *(empty)*                  | Optional if CLIProxyAPI has no `api-keys` |
 
 Credentials are stored in `~/.local/share/pi/agent/cliproxy.json`.
 
@@ -119,12 +119,12 @@ pi -m cliproxy/gpt-5.4-mini
 
 ## Commands
 
-| Command | Description |
-|---------|-------------|
-| `/cliproxy-connect` | Configure base URL and API key (interactive). |
-| `/cliproxy-refresh` | Force-refresh the model list from the server. |
-| `/cliproxy-status` | Show the current base URL, API key state, and model count. |
-| `/cliproxy-logout` | Clear the saved credentials. |
+| Command             | Description                                                |
+| ------------------- | ---------------------------------------------------------- |
+| `/cliproxy-connect` | Configure base URL and API key (interactive).              |
+| `/cliproxy-refresh` | Force-refresh the model list from the server.              |
+| `/cliproxy-status`  | Show the current base URL, API key state, and model count. |
+| `/cliproxy-logout`  | Clear the saved credentials.                               |
 
 ## Configuration
 
@@ -154,13 +154,13 @@ loads CLIProxyAPI's registry from GitHub (`DEFAULT_MODELS_JSON_URL`), so
 thinking levels and token limits are populated in most setups without
 additional configuration.
 
-| CLIProxyAPI `models.json` field | OMP model field |
-|----------------------------------|-----------------|
-| `context_length` / `inputTokenLimit` | `contextWindow` |
-| `max_completion_tokens` / `outputTokenLimit` | `maxTokens` |
-| `display_name` | `name` |
-| `description` | `description` |
-| `thinking.levels` | sets `reasoning: true` on the model |
+| CLIProxyAPI `models.json` field              | OMP model field                     |
+| -------------------------------------------- | ----------------------------------- |
+| `context_length` / `inputTokenLimit`         | `contextWindow`                     |
+| `max_completion_tokens` / `outputTokenLimit` | `maxTokens`                         |
+| `display_name`                               | `name`                              |
+| `description`                                | `description`                       |
+| `thinking.levels`                            | sets `reasoning: true` on the model |
 
 Override with a local path or custom URL via the `modelsJsonPath` setting.
 
@@ -171,13 +171,13 @@ model with metadata from [models.dev](https://models.dev/) (context window,
 output tokens, modality flags, pricing). Set `enabled: false` to disable
 network access.
 
-| Option | Type | Default | Description |
-|--------|------|---------|-------------|
-| `modelsDev.enabled` | boolean | `true` | Enrich from models.dev |
-| `modelsDev.url` | string | `https://models.dev/api.json` | models.dev API URL |
-| `modelsDev.cacheTtl` | number | `86400000` | models.dev cache TTL (ms) |
-| `modelsDev.timeoutMs` | number | `5000` | models.dev fetch timeout (ms) |
-| `modelsDev.providerAliases` | object | — | Map `owned_by` → models.dev provider |
+| Option                      | Type    | Default                       | Description                          |
+| --------------------------- | ------- | ----------------------------- | ------------------------------------ |
+| `modelsDev.enabled`         | boolean | `true`                        | Enrich from models.dev               |
+| `modelsDev.url`             | string  | `https://models.dev/api.json` | models.dev API URL                   |
+| `modelsDev.cacheTtl`        | number  | `86400000`                    | models.dev cache TTL (ms)            |
+| `modelsDev.timeoutMs`       | number  | `5000`                        | models.dev fetch timeout (ms)        |
+| `modelsDev.providerAliases` | object  | —                             | Map `owned_by` → models.dev provider |
 
 ## Runtime API
 

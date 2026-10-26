@@ -79,3 +79,10 @@ test('readSettings sanitizes modelsDev sub-config', async () => {
   assert.equal(result.modelsDev?.providerAliases?.anthropic, 'anthropic');
   assert.equal(result.modelsDev?.providerAliases?.bad, undefined);
 });
+test('writeSettings sets file permissions to 0o600', async () => {
+  await writeSettings({ baseURL: 'http://example.com/v1', apiKey: 'secret' });
+  const path = getSettingsPath();
+  const { statSync } = await import('fs');
+  const mode = statSync(path).mode & 0o777;
+  assert.equal(mode, 0o600);
+});

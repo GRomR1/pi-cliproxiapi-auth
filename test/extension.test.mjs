@@ -270,3 +270,12 @@ test('resolveSettings falls back to default baseURL on garbage', async () => {
   const result = await resolveSettings({ baseURL: 'not a url', apiKey: '' });
   assert.equal(result.baseURL, 'http://localhost:8317/v1');
 });
+
+test('resolveSettings preserves modelsDev configuration', async () => {
+  const result = await resolveSettings({
+    baseURL: 'http://example.com/v1',
+    apiKey: '',
+    modelsDev: { enabled: false, timeoutMs: 3000 },
+  });
+  assert.deepEqual(result.modelsDev, { enabled: false, timeoutMs: 3000 });
+});

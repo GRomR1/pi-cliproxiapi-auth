@@ -16,6 +16,7 @@ interface ResolvedSettings {
   baseURL: string;
   apiKey: string;
   modelsJsonPath: string;
+  modelsDev?: CliproxyExtensionSettings['modelsDev'];
 }
 
 function readString(value: string | undefined, fallback: string): string {
@@ -64,7 +65,12 @@ export async function resolveSettings(
     : readEnvBaseURL();
   const apiKey = stored?.apiKey?.trim() || readEnvApiKey();
   const modelsJsonPath = stored?.modelsJsonPath?.trim() || DEFAULT_MODELS_JSON_URL;
-  return { baseURL, apiKey, modelsJsonPath };
+  return {
+    baseURL,
+    apiKey,
+    modelsJsonPath,
+    ...(stored?.modelsDev ? { modelsDev: stored.modelsDev } : {}),
+  };
 }
 
 function buildFetcherConfig(settings: ResolvedSettings): CliproxyConfig {
@@ -72,6 +78,7 @@ function buildFetcherConfig(settings: ResolvedSettings): CliproxyConfig {
     baseUrl: settings.baseURL,
     apiKey: settings.apiKey,
     modelsJsonPath: settings.modelsJsonPath,
+    ...(settings.modelsDev ? { modelsDev: settings.modelsDev } : {}),
   };
 }
 
@@ -159,6 +166,7 @@ export default async function cliproxyExtension(pi: ExtensionAPI): Promise<void>
         modelsJsonPath: settings.modelsJsonPath === DEFAULT_MODELS_JSON_URL
           ? undefined
           : settings.modelsJsonPath,
+        ...(settings.modelsDev ? { modelsDev: settings.modelsDev } : {}),
       };
 
       try {
@@ -172,6 +180,7 @@ export default async function cliproxyExtension(pi: ExtensionAPI): Promise<void>
         baseURL,
         apiKey,
         modelsJsonPath: settings.modelsJsonPath,
+        ...(settings.modelsDev ? { modelsDev: settings.modelsDev } : {}),
       };
       clearModelCache();
       const models = await refreshModels();

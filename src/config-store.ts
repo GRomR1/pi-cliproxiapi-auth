@@ -106,7 +106,7 @@ function sanitizeModelsDev(
 export async function writeSettings(settings: CliproxyExtensionSettings): Promise<void> {
   const path = getSettingsPath();
   await mkdir(dirname(path), { recursive: true });
-  await writeFile(path, JSON.stringify(settings, null, 2), 'utf-8');
+  await writeFile(path, JSON.stringify(settings, null, 2), { encoding: 'utf-8', mode: 0o600 });
 }
 
 /** Delete settings file from disk. Resolves to env vars / defaults on next read. */
