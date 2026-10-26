@@ -39,7 +39,8 @@ function buildAuthHeaders(apiKey: string): HeadersInit {
 async function fetchApiModels(
   config: CliproxyConfig,
 ): Promise<CliproxyModel[]> {
-  const baseUrl = config.baseUrl || CLIPROXY_ENDPOINTS.BASE_URL;
+  const rawBase = config.baseUrl || CLIPROXY_ENDPOINTS.BASE_URL;
+  const baseUrl = rawBase.replace(/\/+$/, '');
   const modelsUrl = `${baseUrl}${CLIPROXY_ENDPOINTS.MODELS}`;
 
   debug(`Fetching models from ${modelsUrl}`);

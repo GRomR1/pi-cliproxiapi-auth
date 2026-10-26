@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Correct context window and limits for Qwen and open-weights models (e.g. `qwen38-27b`, `qwen3.8-27b`) by adding Alibaba/Qwen provider aliases, normalizing version formats, and matching consensus limits across multi-host providers.
+- Preserved `modelsDev` user configuration in `resolveSettings` and during `/cliproxy-connect` command execution.
+- Set secure `0o600` file permissions on `cliproxy.json` when writing API keys to disk.
+- Preserved upstream `/v1/models` context and token limits (`context_length`, `max_tokens`) during API model normalization.
+- Handled concurrent log rotation errors gracefully in `findLogFile`.
+- Stripped trailing slash from `baseUrl` in `model-fetcher.ts` to prevent malformed `//models` URLs.
+
 ## [1.0.2] - 2026-08-01
 
 ### Added
