@@ -76,6 +76,24 @@ export interface CliproxyModel {
   };
 }
 
+export type CliproxyThinkingFormat =
+  | 'openai'
+  | 'openrouter'
+  | 'deepseek'
+  | 'together'
+  | 'zai'
+  | 'qwen'
+  | 'chat-template'
+  | 'qwen-chat-template'
+  | 'string-thinking'
+  | 'ant-ling';
+
+export interface CliproxyCompatConfig {
+  thinkingFormat?: CliproxyThinkingFormat;
+  supportsReasoningEffort?: boolean;
+  maxTokensField?: 'max_completion_tokens' | 'max_tokens';
+}
+
 export interface CliproxyModelsDevConfig {
   enabled?: boolean;
   url?: string;
@@ -83,7 +101,6 @@ export interface CliproxyModelsDevConfig {
   timeoutMs?: number;
   providerAliases?: Record<string, string>;
 }
-
 /**
  * Internal configuration consumed by the model fetcher.
  */
@@ -95,6 +112,9 @@ export interface CliproxyConfig {
   modelsDev?: CliproxyModelsDevConfig;
   /** Local path or URL to CLIProxyAPI models.json for metadata enrichment. */
   modelsJsonPath?: string;
+  /** Default or model-specific compat overrides (e.g. for custom providers in CLIProxyAPI). */
+  compat?: CliproxyCompatConfig;
+  modelCompat?: Record<string, CliproxyCompatConfig>;
 }
 
 /**
@@ -105,4 +125,6 @@ export interface CliproxyExtensionSettings {
   apiKey: string;
   modelsJsonPath?: string;
   modelsDev?: CliproxyModelsDevConfig;
+  compat?: CliproxyCompatConfig;
+  modelCompat?: Record<string, CliproxyCompatConfig>;
 }

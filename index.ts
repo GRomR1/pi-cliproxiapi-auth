@@ -1,6 +1,7 @@
 export { default, default as cliproxyExtension, resolveSettings } from './src/extension.js';
 
 export type {
+  CliproxyCompatConfig,
   CliproxyConfig,
   CliproxyExtensionSettings,
   CliproxyModel,
@@ -9,6 +10,12 @@ export type {
   CliproxyModelsResponse,
   CliproxyRegistryModel,
   CliproxyThinking,
+  CliproxyThinkingFormat,
 } from './src/types.js';
 
-export type { CliproxyModelVariant, OmpModel } from './src/normalizer.js';
+export type {
+  CliproxyModelVariant,
+  OmpModel,
+  ThinkingLevel,
+  ThinkingLevelMap,
+} from './src/normalizer.js';

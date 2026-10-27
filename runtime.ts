@@ -1,13 +1,19 @@
 export type {
+  CliproxyCompatConfig,
   CliproxyConfig,
   CliproxyExtensionSettings,
   CliproxyModel,
   CliproxyModelsDevConfig,
   CliproxyThinking,
+  CliproxyThinkingFormat,
 } from './src/types.js';
 
-export type { CliproxyModelVariant, OmpModel } from './src/normalizer.js';
-
+export type {
+  CliproxyModelVariant,
+  OmpModel,
+  ThinkingLevel,
+  ThinkingLevelMap,
+} from './src/normalizer.js';
 export { fetchModels, clearModelCache, refreshModels, getCachedModels, isCacheValid } from './src/model-fetcher.js';
 
 export {
@@ -30,6 +36,8 @@ export {
   mergeModelMetadata,
   thinkingToVariants,
   getModelFamily,
+  buildThinkingLevelMap,
+  inferThinkingFormat,
   toOmpModel,
 } from './src/normalizer.js';
 

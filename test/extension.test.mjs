@@ -73,6 +73,7 @@ test('extension registers the cliproxy provider with default baseURL', async () 
   assert.ok(commands.has('cliproxy-connect'));
   assert.ok(commands.has('cliproxy-refresh'));
   assert.ok(commands.has('cliproxy-status'));
+  assert.ok(commands.has('cliproxy-models'));
   assert.ok(commands.has('cliproxy-logout'));
 });
 
@@ -278,4 +279,24 @@ test('resolveSettings preserves modelsDev configuration', async () => {
     modelsDev: { enabled: false, timeoutMs: 3000 },
   });
   assert.deepEqual(result.modelsDev, { enabled: false, timeoutMs: 3000 });
+});
+
+test('cliproxy-models command notifies model list with specs', async () => {
+  const { pi, commands } = makePi();
+  await cliproxyExtension(pi);
+
+  let notification = '';
+  const ctx = {
+    hasUI: true,
+    ui: {
+      notify: (msg) => {
+        notification = msg;
+      },
+    },
+  };
+
+  await commands.get('cliproxy-models').handler('', ctx);
+  assert.ok(notification.includes('CLIProxyAPI Models'));
+  assert.ok(notification.includes('claude-sonnet-4-6'));
+  assert.ok(notification.includes('[thinking]'));
 });

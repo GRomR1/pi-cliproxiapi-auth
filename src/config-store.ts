@@ -59,12 +59,16 @@ function normalizeSettings(
   const modelsJsonPath = isString(data.modelsJsonPath) ? data.modelsJsonPath.trim() : undefined;
 
   const modelsDev = isRecord(data.modelsDev) ? sanitizeModelsDev(data.modelsDev) : undefined;
+  const compat = isRecord(data.compat) ? sanitizeCompat(data.compat) : undefined;
+  const modelCompat = isRecord(data.modelCompat) ? sanitizeModelCompat(data.modelCompat) : undefined;
 
   return {
     baseURL: baseURL || CLIPROXY_ENDPOINTS.BASE_URL,
     apiKey,
     ...(modelsJsonPath ? { modelsJsonPath } : {}),
     ...(modelsDev ? { modelsDev } : {}),
+    ...(compat ? { compat } : {}),
+    ...(modelCompat ? { modelCompat } : {}),
   };
 }
 
@@ -100,6 +104,53 @@ function sanitizeModelsDev(
     ...(timeoutMs !== undefined ? { timeoutMs } : {}),
     ...(providerAliases && Object.keys(providerAliases).length > 0 ? { providerAliases } : {}),
   };
+}
+
+const VALID_THINKING_FORMATS = new Set([
+  'openai',
+  'openrouter',
+  'deepseek',
+  'together',
+  'zai',
+  'qwen',
+  'chat-template',
+  'qwen-chat-template',
+  'string-thinking',
+  'ant-ling',
+]);
+
+function sanitizeCompat(raw: Record<string, unknown>): CliproxyExtensionSettings['compat'] {
+  const thinkingFormat =
+    isString(raw.thinkingFormat) && VALID_THINKING_FORMATS.has(raw.thinkingFormat)
+      ? (raw.thinkingFormat as CliproxyExtensionSettings['compat'] extends infer C ? C extends { thinkingFormat?: infer F } ? F : never : never)
+      : undefined;
+  const supportsReasoningEffort = isBoolean(raw.supportsReasoningEffort) ? raw.supportsReasoningEffort : undefined;
+  const maxTokensField =
+    raw.maxTokensField === 'max_completion_tokens' || raw.maxTokensField === 'max_tokens'
+      ? raw.maxTokensField
+      : undefined;
+
+  const hasAny = thinkingFormat !== undefined || supportsReasoningEffort !== undefined || maxTokensField !== undefined;
+  if (!hasAny) return undefined;
+
+  return {
+    ...(thinkingFormat ? { thinkingFormat } : {}),
+    ...(supportsReasoningEffort !== undefined ? { supportsReasoningEffort } : {}),
+    ...(maxTokensField ? { maxTokensField } : {}),
+  };
+}
+
+function sanitizeModelCompat(raw: Record<string, unknown>): CliproxyExtensionSettings['modelCompat'] {
+  const result: NonNullable<CliproxyExtensionSettings['modelCompat']> = {};
+  for (const [modelId, config] of Object.entries(raw)) {
+    if (isRecord(config)) {
+      const sanitized = sanitizeCompat(config);
+      if (sanitized) {
+        result[modelId] = sanitized;
+      }
+    }
+  }
+  return Object.keys(result).length > 0 ? result : undefined;
 }
 
 /** Persist settings to disk. Creates parent directory if needed. */

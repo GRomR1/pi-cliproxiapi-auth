@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Dynamic `thinkingLevelMap` generation based on CLIProxyAPI `thinking.levels` metadata; unsupported levels are set to `null` so pi disables them in the TUI selector.
+- Automatic thinking format inference (`compat.thinkingFormat`) for known models (DeepSeek, Qwen/Alibaba, Together, OpenRouter, ZAI/GLM).
+- `compat` and `modelCompat` configuration in `cliproxy.json` allowing user-defined custom provider thinking formats (`openai`, `qwen`, `deepseek`, `together`, `zai`, `chat-template`, etc.).
+- `/cliproxy-models` command to list all registered CLIProxyAPI models with context limits, vision, and thinking capabilities.
+
 ## [1.0.3] - 2026-10-27
 
 ### Fixed

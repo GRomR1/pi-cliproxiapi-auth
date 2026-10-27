@@ -2,6 +2,8 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
 import {
+  buildThinkingLevelMap,
+  inferThinkingFormat,
   thinkingToVariants,
   normalizeRegistryModel,
   mergeModelMetadata,
@@ -112,4 +114,52 @@ test('normalizeApiModel preserves context_length and max_tokens from API', () =>
   });
   assert.equal(apiModel.contextWindow, 262144);
   assert.equal(apiModel.maxTokens, 32768);
+});
+
+test('buildThinkingLevelMap disables unsupported levels with null', () => {
+  const map = buildThinkingLevelMap({ levels: ['low', 'high'] }, true);
+  assert.ok(map);
+  assert.equal(map.low, 'low');
+  assert.equal(map.high, 'high');
+  assert.equal(map.minimal, null);
+  assert.equal(map.medium, null);
+  assert.equal(map.xhigh, null);
+  assert.equal(map.max, null);
+});
+
+test('inferThinkingFormat detects provider dialects from id and owner', () => {
+  assert.equal(inferThinkingFormat('deepseek-r1', 'deepseek'), 'deepseek');
+  assert.equal(inferThinkingFormat('qwen-max', 'alibaba'), 'qwen');
+  assert.equal(inferThinkingFormat('glm-4', 'zai'), 'zai');
+  assert.equal(inferThinkingFormat('custom-model', 'together'), 'together');
+  assert.equal(inferThinkingFormat('custom-model', 'openrouter'), 'openrouter');
+  assert.equal(inferThinkingFormat('gpt-5', 'openai'), 'openai');
+});
+
+test('toOmpModel applies thinkingLevelMap and user compat overrides', () => {
+  const model = {
+    id: 'my-custom-qwen',
+    name: 'Custom Qwen',
+    supportsReasoning: true,
+    thinking: { levels: ['low', 'medium'] },
+  };
+
+  // Default inference
+  const defaultOmp = toOmpModel(model);
+  assert.equal(defaultOmp.reasoning, true);
+  assert.equal(defaultOmp.thinkingLevelMap?.low, 'low');
+  assert.equal(defaultOmp.thinkingLevelMap?.high, null);
+  assert.equal(defaultOmp.compat?.thinkingFormat, 'qwen');
+
+  // User override via compat / modelCompat
+  const overriddenOmp = toOmpModel(model, {
+    modelCompat: {
+      'my-custom-qwen': {
+        thinkingFormat: 'chat-template',
+        supportsReasoningEffort: false,
+      },
+    },
+  });
+  assert.equal(overriddenOmp.compat?.thinkingFormat, 'chat-template');
+  assert.equal(overriddenOmp.compat?.supportsReasoningEffort, false);
 });
