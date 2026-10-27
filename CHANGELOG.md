@@ -7,14 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.3] - 2026-10-27
+
 ### Fixed
 
 - Correct context window and limits for Qwen and open-weights models (e.g. `qwen38-27b`, `qwen3.8-27b`) by adding Alibaba/Qwen provider aliases, normalizing version formats, and matching consensus limits across multi-host providers.
 - Preserved `modelsDev` user configuration in `resolveSettings` and during `/cliproxy-connect` command execution.
-- Set secure `0o600` file permissions on `cliproxy.json` when writing API keys to disk.
+- Set secure `0o600` file permissions on `cliproxy.json` on both new and existing files.
 - Preserved upstream `/v1/models` context and token limits (`context_length`, `max_tokens`) during API model normalization.
 - Handled concurrent log rotation errors gracefully in `findLogFile`.
-- Stripped trailing slash from `baseUrl` in `model-fetcher.ts` to prevent malformed `//models` URLs.
+- Stripped trailing slash from `baseUrl` in `model-fetcher.ts` (API call and cache key) to prevent malformed URLs and duplicate fetches.
 
 ## [1.0.2] - 2026-08-01
 
@@ -68,7 +70,8 @@ Initial release as a [pi-mono](https://github.com/earendil-works/pi) (OMP) exten
 - **Runtime API** — `fetchModels`, `clearModelCache`, `refreshModels`, `resolveSettings`, `readSettings`, `writeSettings`, `deleteSettings`, normalizers
 - Unit tests (42) + integration tests (6)
 
-[Unreleased]: https://github.com/GRomR1/pi-cliproxiapi-auth/compare/v1.0.2...main
+[Unreleased]: https://github.com/GRomR1/pi-cliproxiapi-auth/compare/v1.0.3...main
+[1.0.3]: https://github.com/GRomR1/pi-cliproxiapi-auth/compare/v1.0.2...v1.0.3
 [1.0.2]: https://github.com/GRomR1/pi-cliproxiapi-auth/compare/v1.0.1...v1.0.2
 [1.0.1]: https://github.com/GRomR1/pi-cliproxiapi-auth/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/GRomR1/pi-cliproxiapi-auth/releases/tag/v1.0.0
