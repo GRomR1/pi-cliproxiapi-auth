@@ -55,11 +55,23 @@ export function normalizeApiModel(model: {
   owned_by?: string;
   [key: string]: unknown;
 }): CliproxyModel {
+  const contextWindow =
+    (typeof model.context_length === 'number' && model.context_length > 0 ? model.context_length : undefined) ??
+    (typeof model.context_window === 'number' && model.context_window > 0 ? model.context_window : undefined) ??
+    (typeof model.inputTokenLimit === 'number' && model.inputTokenLimit > 0 ? model.inputTokenLimit : undefined);
+
+  const maxTokens =
+    (typeof model.max_completion_tokens === 'number' && model.max_completion_tokens > 0 ? model.max_completion_tokens : undefined) ??
+    (typeof model.max_tokens === 'number' && model.max_tokens > 0 ? model.max_tokens : undefined) ??
+    (typeof model.outputTokenLimit === 'number' && model.outputTokenLimit > 0 ? model.outputTokenLimit : undefined);
+
   return {
     id: model.id,
     name: typeof model.name === 'string' ? model.name : model.id,
     ownedBy: typeof model.owned_by === 'string' ? model.owned_by : undefined,
     description: `CLIProxyAPI model: ${model.id}`,
+    ...(contextWindow !== undefined ? { contextWindow } : {}),
+    ...(maxTokens !== undefined ? { maxTokens } : {}),
     supportsStreaming: true,
     supportsTools: true,
     supportsTemperature: true,

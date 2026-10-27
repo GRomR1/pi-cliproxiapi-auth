@@ -103,3 +103,13 @@ test('toOmpModel applies default limits when context/max are missing', () => {
   assert.equal(omp.contextWindow, 128_000);
   assert.equal(omp.maxTokens, 8_192);
 });
+test('normalizeApiModel preserves context_length and max_tokens from API', () => {
+  const apiModel = normalizeApiModel({
+    id: 'qwen38-27b',
+    owned_by: 'vllm',
+    context_length: 262144,
+    max_tokens: 32768,
+  });
+  assert.equal(apiModel.contextWindow, 262144);
+  assert.equal(apiModel.maxTokens, 32768);
+});

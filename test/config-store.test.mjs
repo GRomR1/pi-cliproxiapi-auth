@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, test } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdirSync, mkdtempSync, rmSync, existsSync, readFileSync, writeFileSync } from 'fs';
+import { chmodSync, mkdirSync, mkdtempSync, rmSync, existsSync, readFileSync, statSync, writeFileSync } from 'fs';
 import { tmpdir } from 'os';
 import { join } from 'path';
 
@@ -78,4 +78,19 @@ test('readSettings sanitizes modelsDev sub-config', async () => {
   assert.equal(result.modelsDev?.cacheTtl, undefined);
   assert.equal(result.modelsDev?.providerAliases?.anthropic, 'anthropic');
   assert.equal(result.modelsDev?.providerAliases?.bad, undefined);
+});
+
+test('writeSettings sets file permissions to 0o600 on new and existing files', async () => {
+  const path = getSettingsPath();
+
+  // 1. Fresh file
+  await writeSettings({ baseURL: 'http://example.com/v1', apiKey: 'secret' });
+  assert.equal(statSync(path).mode & 0o777, 0o600);
+
+  // 2. Existing file with permissive mode 0o644
+  chmodSync(path, 0o644);
+  assert.equal(statSync(path).mode & 0o777, 0o644);
+
+  await writeSettings({ baseURL: 'http://example.com/v1', apiKey: 'secret-updated' });
+  assert.equal(statSync(path).mode & 0o777, 0o600);
 });

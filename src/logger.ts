@@ -27,12 +27,15 @@ function findLogFile(): string | null {
       .filter((f) => f.endsWith('.log'))
       .map((f) => {
         const path = join(LOG_DIR, f);
-        const stat = statSync(path);
-        return { path, mtime: stat.mtime.getTime(), isFile: stat.isFile() };
+        try {
+          const stat = statSync(path);
+          return { path, mtime: stat.mtime.getTime(), isFile: stat.isFile() };
+        } catch {
+          return null;
+        }
       })
-      .filter((f) => f.isFile)
+      .filter((f): f is { path: string; mtime: number; isFile: boolean } => f !== null && f.isFile)
       .sort((a, b) => b.mtime - a.mtime || a.path.localeCompare(b.path));
-
     return files[0]?.path ?? null;
   } catch {
     return null;

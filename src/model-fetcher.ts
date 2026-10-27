@@ -15,6 +15,8 @@ const modelCache = new TtlCache<CliproxyModel[]>();
 const inFlightFetches = new Map<string, Promise<CliproxyModel[]>>();
 
 function getCacheKey(config: CliproxyConfig): string {
+  const rawBase = config.baseUrl || CLIPROXY_ENDPOINTS.BASE_URL;
+  const baseUrl = rawBase.replace(/\/+$/, '');
   const modelsDevHash = config.modelsDev
     ? JSON.stringify({
         enabled: config.modelsDev.enabled,
@@ -22,7 +24,7 @@ function getCacheKey(config: CliproxyConfig): string {
         providerAliases: config.modelsDev.providerAliases,
       })
     : '';
-  return `${config.baseUrl}:${config.apiKey}:${config.modelsJsonPath ?? ''}:${modelsDevHash}`;
+  return `${baseUrl}:${config.apiKey}:${config.modelsJsonPath ?? ''}:${modelsDevHash}`;
 }
 
 function buildAuthHeaders(apiKey: string): HeadersInit {
@@ -39,7 +41,8 @@ function buildAuthHeaders(apiKey: string): HeadersInit {
 async function fetchApiModels(
   config: CliproxyConfig,
 ): Promise<CliproxyModel[]> {
-  const baseUrl = config.baseUrl || CLIPROXY_ENDPOINTS.BASE_URL;
+  const rawBase = config.baseUrl || CLIPROXY_ENDPOINTS.BASE_URL;
+  const baseUrl = rawBase.replace(/\/+$/, '');
   const modelsUrl = `${baseUrl}${CLIPROXY_ENDPOINTS.MODELS}`;
 
   debug(`Fetching models from ${modelsUrl}`);

@@ -57,6 +57,10 @@ const DEFAULT_PROVIDER_ALIASES: Record<string, string> = {
   deepseek: 'deepseek',
   mistral: 'mistral',
   xai: 'xai',
+  alibaba: 'alibaba',
+  alibabacloud: 'alibaba',
+  qwen: 'alibaba',
+  bailian: 'alibaba',
 };
 
 /** CLIProxyAPI uses "antigravity" as a catch-all owned_by. Infer real provider from model ID. */
@@ -66,6 +70,8 @@ function inferProviderFromModelId(modelId: string): string | null {
   if (lower.startsWith('gemini-') || lower.startsWith('imagen-')) return 'google';
   if (lower.startsWith('gpt-') || lower.startsWith('codex-') || lower.startsWith('o1-') || lower.startsWith('o3-')) return 'openai';
   if (lower.startsWith('grok-')) return 'xai';
+  if (lower.startsWith('qwen') || lower.includes('/qwen')) return 'alibaba';
+  if (lower.startsWith('deepseek') || lower.includes('/deepseek')) return 'deepseek';
   return null;
 }
 
@@ -74,14 +80,27 @@ export function resolveProviderAlias(
   config?: CliproxyConfig,
   modelId?: string,
 ): string | null {
-  if (!ownedBy) return null;
-  const lower = ownedBy.toLowerCase();
   const aliases = { ...DEFAULT_PROVIDER_ALIASES, ...config?.modelsDev?.providerAliases };
+
+  if (!ownedBy) {
+    if (modelId) {
+      const inferred = inferProviderFromModelId(modelId);
+      if (inferred) return aliases[inferred] ?? inferred;
+    }
+    return null;
+  }
+
+  const lower = ownedBy.toLowerCase();
 
   // CLIProxyAPI uses "antigravity" as catch-all — try to infer from model ID
   if (lower === 'antigravity' && modelId) {
     const inferred = inferProviderFromModelId(modelId);
     if (inferred) return aliases[inferred] ?? inferred;
+  }
+
+  if (!aliases[lower] && modelId) {
+    const inferred = inferProviderFromModelId(modelId);
+    if (inferred && aliases[inferred]) return aliases[inferred];
   }
 
   return aliases[lower] ?? lower;
@@ -185,15 +204,71 @@ export function clearModelsDevCache(): void {
   modelsDevCacheMap.clear();
 }
 
+function getCandidateKeys(modelId: string): string[] {
+  const keys = new Set<string>();
+  const raw = modelId.toLowerCase();
+  keys.add(raw);
+  keys.add(normalizeModelKey(raw));
+
+  if (raw.includes('/')) {
+    const stripped = raw.split('/').pop();
+    if (stripped) {
+      keys.add(stripped);
+      keys.add(normalizeModelKey(stripped));
+    }
+  }
+
+  for (const k of Array.from(keys)) {
+    if (/qwen\d+\.\d+/.test(k)) {
+      const withoutDot = k.replace(/qwen(\d+)\.(\d+)/, 'qwen$1$2');
+      keys.add(withoutDot);
+      keys.add(normalizeModelKey(withoutDot));
+    } else if (/qwen\d{2,}/.test(k)) {
+      const withDot = k.replace(/qwen(\d)(\d+)/, 'qwen$1.$2');
+      keys.add(withDot);
+      keys.add(normalizeModelKey(withDot));
+    }
+  }
+
+  return Array.from(keys);
+}
+
+function pickConsistentGlobalMatch(list: ModelsDevModel[] | undefined): ModelsDevModel | undefined {
+  if (!list || list.length === 0) return undefined;
+  if (list.length === 1) return list[0];
+
+  const uniqueNames = new Set(list.map((m) => m.name.toLowerCase().replace(/[\s\-_]/g, '')));
+  if (uniqueNames.size === 1) {
+    const contextCounts = new Map<number, number>();
+    for (const m of list) {
+      if (m.limit?.context) {
+        contextCounts.set(m.limit.context, (contextCounts.get(m.limit.context) ?? 0) + 1);
+      }
+    }
+    if (contextCounts.size > 0) {
+      let mostCommonContext = 0;
+      let maxCount = -1;
+      for (const [ctx, count] of contextCounts.entries()) {
+        if (count > maxCount) {
+          maxCount = count;
+          mostCommonContext = ctx;
+        }
+      }
+      const best = list.find((m) => m.limit?.context === mostCommonContext);
+      if (best) return best;
+    }
+    return list.find((m) => m.limit?.context) ?? list[0];
+  }
+
+  return undefined;
+}
+
 function lookupModelsDevModel(
   index: ModelsDevIndex,
   providerCandidates: string[],
   modelId: string,
 ): ModelsDevModel | undefined {
-  const candidates = [
-    modelId.toLowerCase(),
-    normalizeModelKey(modelId),
-  ];
+  const candidates = getCandidateKeys(modelId);
 
   for (const provider of providerCandidates) {
     for (const candidate of candidates) {
@@ -205,10 +280,10 @@ function lookupModelsDevModel(
   }
 
   for (const candidate of candidates) {
-    const exactList = index.exactGlobal.get(candidate);
-    if (exactList?.length === 1) return exactList[0];
-    const normList = index.normalizedGlobal.get(normalizeModelKey(candidate));
-    if (normList?.length === 1) return normList[0];
+    const exact = pickConsistentGlobalMatch(index.exactGlobal.get(candidate));
+    if (exact) return exact;
+    const normalized = pickConsistentGlobalMatch(index.normalizedGlobal.get(normalizeModelKey(candidate)));
+    if (normalized) return normalized;
   }
 
   return undefined;
