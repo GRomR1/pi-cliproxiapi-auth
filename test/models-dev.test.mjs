@@ -117,6 +117,31 @@ test('enrichWithModelsDev strips model namespace prefix', () => {
   });
 
   assert.ok(index);
-  const enriched = enrichWithModelsDev({ id: 'qwen/qwen3.5-27b', name: 'qwen/qwen3.5-27b', ownedBy: 'alibaba' }, index);
+  const enriched = enrichWithModelsDev(
+    { id: 'qwen/qwen3.5-27b', name: 'qwen/qwen3.5-27b', ownedBy: 'alibaba' },
+    index,
+  );
   assert.equal(enriched.contextWindow, 262144);
+});
+
+test('enrichWithModelsDev handles qwen version variants without dots', () => {
+  const index = buildModelsDevIndex({
+    alibaba: {
+      id: 'alibaba',
+      models: {
+        'qwen2.5-72b': {
+          id: 'qwen2.5-72b',
+          name: 'Qwen2.5 72B',
+          limit: { context: 131072, output: 8192 },
+        },
+      },
+    },
+  });
+
+  assert.ok(index);
+  const enriched = enrichWithModelsDev(
+    { id: 'qwen25-72b', name: 'qwen25-72b', ownedBy: 'alibaba' },
+    index,
+  );
+  assert.equal(enriched.contextWindow, 131072);
 });

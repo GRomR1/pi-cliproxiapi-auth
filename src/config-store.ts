@@ -1,5 +1,5 @@
 import { existsSync } from 'fs';
-import { mkdir, readFile, writeFile, unlink } from 'fs/promises';
+import { chmod, mkdir, readFile, writeFile, unlink } from 'fs/promises';
 import { homedir } from 'os';
 import { dirname, join } from 'path';
 import type { CliproxyExtensionSettings } from './types.js';
@@ -107,6 +107,7 @@ export async function writeSettings(settings: CliproxyExtensionSettings): Promis
   const path = getSettingsPath();
   await mkdir(dirname(path), { recursive: true });
   await writeFile(path, JSON.stringify(settings, null, 2), { encoding: 'utf-8', mode: 0o600 });
+  await chmod(path, 0o600);
 }
 
 /** Delete settings file from disk. Resolves to env vars / defaults on next read. */

@@ -211,21 +211,22 @@ function getCandidateKeys(modelId: string): string[] {
   keys.add(normalizeModelKey(raw));
 
   if (raw.includes('/')) {
-    const stripped = raw.split('/').pop()!;
-    keys.add(stripped);
-    keys.add(normalizeModelKey(stripped));
+    const stripped = raw.split('/').pop();
+    if (stripped) {
+      keys.add(stripped);
+      keys.add(normalizeModelKey(stripped));
+    }
   }
 
   for (const k of Array.from(keys)) {
-    if (/qwen\d\d/i.test(k)) {
-      const withDot = k.replace(/qwen(\d)(\d)/i, 'qwen$1.$2');
-      keys.add(withDot);
-      keys.add(normalizeModelKey(withDot));
-    }
-    if (/qwen\d\.\d/i.test(k)) {
-      const withoutDot = k.replace(/qwen(\d)\.(\d)/i, 'qwen$1$2');
+    if (/qwen\d+\.\d+/.test(k)) {
+      const withoutDot = k.replace(/qwen(\d+)\.(\d+)/, 'qwen$1$2');
       keys.add(withoutDot);
       keys.add(normalizeModelKey(withoutDot));
+    } else if (/qwen\d{2,}/.test(k)) {
+      const withDot = k.replace(/qwen(\d)(\d+)/, 'qwen$1.$2');
+      keys.add(withDot);
+      keys.add(normalizeModelKey(withDot));
     }
   }
 

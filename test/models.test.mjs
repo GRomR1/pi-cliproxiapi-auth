@@ -69,6 +69,17 @@ test('fetchModels caches successful responses', async () => {
   assert.equal(isCacheValid(CONFIG), true);
 });
 
+test('fetchModels normalizes baseUrl trailing slash for caching', async () => {
+  const { mockFetch, getCalls } = createMockFetch();
+  global.fetch = mockFetch;
+
+  await fetchModels({ ...CONFIG, baseUrl: 'http://localhost:8317/v1' }, false);
+  const second = await fetchModels({ ...CONFIG, baseUrl: 'http://localhost:8317/v1/' }, false);
+
+  assert.equal(getCalls(), 1);
+  assert.equal(second[0].id, 'model-1');
+});
+
 test('refreshModels forces refetch', async () => {
   const { mockFetch, getCalls } = createMockFetch();
   global.fetch = mockFetch;
