@@ -188,3 +188,63 @@ test('toOmpModel infers reasoning from r1/thinking/reasoner names and honors exp
   assert.equal(forcedOmp.reasoning, true);
   assert.equal(forcedOmp.compat?.thinkingFormat, 'qwen');
 });
+
+test('normalizeApiModel parses codex client format with max_context_window, input_modalities, and reasoning levels', () => {
+  const raw = {
+    slug: 'laguna-s-2.1',
+    display_name: 'Laguna 2.1',
+    context_window: 500000,
+    max_context_window: 872000,
+    max_tokens: 32768,
+    input_modalities: ['text', 'image'],
+    supported_reasoning_levels: [{ effort: 'low' }, { effort: 'medium' }, { effort: 'high' }],
+  };
+
+  const normalized = normalizeApiModel(raw);
+  assert.equal(normalized.id, 'laguna-s-2.1');
+  assert.equal(normalized.name, 'Laguna 2.1');
+  assert.equal(normalized.contextWindow, 872000);
+  assert.equal(normalized.maxTokens, 32768);
+  assert.equal(normalized.supportsVision, true);
+  assert.equal(normalized.supportsReasoning, true);
+  assert.deepEqual(normalized.thinking?.levels, ['low', 'medium', 'high']);
+});
+
+test('normalizeApiModel detects vision from supports_image_detail_original even if input_modalities lacks image', () => {
+  const model = normalizeApiModel({
+    id: 'test-model',
+    input_modalities: ['text'],
+    supports_image_detail_original: true,
+  });
+  assert.equal(model.supportsVision, true);
+});
+
+test('toOmpModel applies contextWindow, maxTokens, and vision overrides', () => {
+  const model = {
+    id: 'laguna-s-2.1',
+    name: 'Laguna 2.1',
+    contextWindow: 872000,
+    maxTokens: 32768,
+    supportsVision: true,
+  };
+
+  // Default model without overrides
+  const defaultOmp = toOmpModel(model);
+  assert.equal(defaultOmp.contextWindow, 872000);
+  assert.equal(defaultOmp.maxTokens, 32768);
+  assert.deepEqual(defaultOmp.input, ['text', 'image']);
+
+  // Overridden via modelCompat
+  const overriddenOmp = toOmpModel(model, {
+    modelCompat: {
+      'laguna-s-2.1': {
+        contextWindow: 524288,
+        maxTokens: 16384,
+        vision: false,
+      },
+    },
+  });
+  assert.equal(overriddenOmp.contextWindow, 524288);
+  assert.equal(overriddenOmp.maxTokens, 16384);
+  assert.deepEqual(overriddenOmp.input, ['text']);
+});

@@ -97,11 +97,13 @@ test('readSettings sanitizes compat and modelCompat configs', async () => {
         'custom-qwen': {
           reasoning: true,
           thinkingFormat: 'qwen',
+          contextWindow: 524288,
+          maxTokens: 16384,
+          vision: false,
         },
         'bad-model': 'not-an-object',
       },
     }),
-    'utf-8',
   );
 
   const result = await readSettings();
@@ -109,6 +111,9 @@ test('readSettings sanitizes compat and modelCompat configs', async () => {
   assert.equal(result.compat?.supportsReasoningEffort, true);
   assert.equal(result.modelCompat?.['custom-qwen']?.reasoning, true);
   assert.equal(result.modelCompat?.['custom-qwen']?.thinkingFormat, 'qwen');
+  assert.equal(result.modelCompat?.['custom-qwen']?.contextWindow, 524288);
+  assert.equal(result.modelCompat?.['custom-qwen']?.maxTokens, 16384);
+  assert.equal(result.modelCompat?.['custom-qwen']?.vision, false);
 });
 
 test('writeSettings sets file permissions to 0o600 on new and existing files', async () => {

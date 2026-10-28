@@ -26,6 +26,8 @@ export interface CliproxyRegistryModel {
   inputTokenLimit?: number;
   outputTokenLimit?: number;
   thinking?: CliproxyThinking;
+  supportedInputModalities?: string[];
+  input_modalities?: string[];
   [key: string]: unknown;
 }
 
@@ -36,12 +38,24 @@ export type CliproxyModelsJson = Record<string, CliproxyRegistryModel[]>;
  * OpenAI-compatible /v1/models response.
  */
 export interface CliproxyModelsResponse {
-  object: 'list';
-  data: Array<{
-    id: string;
+  object?: string;
+  data?: Array<{
+    id?: string;
+    slug?: string;
     object?: string;
     created?: number;
     owned_by?: string;
+    [key: string]: unknown;
+  }>;
+  models?: Array<{
+    id?: string;
+    slug?: string;
+    display_name?: string;
+    name?: string;
+    context_window?: number;
+    max_context_window?: number;
+    input_modalities?: string[];
+    supported_reasoning_levels?: Array<{ effort?: string; description?: string } | string>;
     [key: string]: unknown;
   }>;
 }
@@ -93,6 +107,9 @@ export interface CliproxyCompatConfig {
   thinkingFormat?: CliproxyThinkingFormat;
   supportsReasoningEffort?: boolean;
   maxTokensField?: 'max_completion_tokens' | 'max_tokens';
+  contextWindow?: number;
+  maxTokens?: number;
+  vision?: boolean;
 }
 
 export interface CliproxyModelsDevConfig {
