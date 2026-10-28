@@ -120,6 +120,7 @@ const VALID_THINKING_FORMATS = new Set([
 ]);
 
 function sanitizeCompat(raw: Record<string, unknown>): CliproxyExtensionSettings['compat'] {
+  const reasoning = isBoolean(raw.reasoning) ? raw.reasoning : undefined;
   const thinkingFormat =
     isString(raw.thinkingFormat) && VALID_THINKING_FORMATS.has(raw.thinkingFormat)
       ? (raw.thinkingFormat as CliproxyExtensionSettings['compat'] extends infer C ? C extends { thinkingFormat?: infer F } ? F : never : never)
@@ -130,10 +131,15 @@ function sanitizeCompat(raw: Record<string, unknown>): CliproxyExtensionSettings
       ? raw.maxTokensField
       : undefined;
 
-  const hasAny = thinkingFormat !== undefined || supportsReasoningEffort !== undefined || maxTokensField !== undefined;
+  const hasAny =
+    reasoning !== undefined ||
+    thinkingFormat !== undefined ||
+    supportsReasoningEffort !== undefined ||
+    maxTokensField !== undefined;
   if (!hasAny) return undefined;
 
   return {
+    ...(reasoning !== undefined ? { reasoning } : {}),
     ...(thinkingFormat ? { thinkingFormat } : {}),
     ...(supportsReasoningEffort !== undefined ? { supportsReasoningEffort } : {}),
     ...(maxTokensField ? { maxTokensField } : {}),

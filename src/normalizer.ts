@@ -220,11 +220,15 @@ export function toOmpModel(
   },
 ): OmpModel {
   const supportsVision = model.supportsVision === true;
-  const supportsReasoning = model.supportsReasoning === true;
-  const thinkingLevelMap = buildThinkingLevelMap(model.thinking, supportsReasoning);
-
   const userModelCompat = options?.modelCompat?.[model.id];
   const userDefaultCompat = options?.compat;
+
+  const isReasonerName = /(?:^|[-_/])(r1|thinking|reasoner)(?:[-_.]|$)/i.test(model.id);
+  const supportsReasoning =
+    userModelCompat?.reasoning ??
+    userDefaultCompat?.reasoning ??
+    (model.supportsReasoning === true || isReasonerName);
+  const thinkingLevelMap = buildThinkingLevelMap(model.thinking, supportsReasoning);
 
   let compat: OmpModel['compat'] = undefined;
   if (supportsReasoning) {

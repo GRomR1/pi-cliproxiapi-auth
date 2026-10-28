@@ -163,3 +163,24 @@ test('toOmpModel applies thinkingLevelMap and user compat overrides', () => {
   assert.equal(overriddenOmp.compat?.thinkingFormat, 'chat-template');
   assert.equal(overriddenOmp.compat?.supportsReasoningEffort, false);
 });
+
+test('toOmpModel infers reasoning from r1/thinking/reasoner names and honors explicit reasoning override', () => {
+  // Inferred from name
+  const r1Model = { id: 'deepseek-ai/DeepSeek-R1-Distill-Qwen-32B', name: 'R1 Distill' };
+  assert.equal(toOmpModel(r1Model).reasoning, true);
+
+  // Unknown self-hosted model forced to reasoning: true via modelCompat
+  const customModel = { id: 'corp-fin-model-v2', name: 'Custom Finance' };
+  assert.equal(toOmpModel(customModel).reasoning, false);
+
+  const forcedOmp = toOmpModel(customModel, {
+    modelCompat: {
+      'corp-fin-model-v2': {
+        reasoning: true,
+        thinkingFormat: 'qwen',
+      },
+    },
+  });
+  assert.equal(forcedOmp.reasoning, true);
+  assert.equal(forcedOmp.compat?.thinkingFormat, 'qwen');
+});

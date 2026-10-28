@@ -89,6 +89,7 @@ export type CliproxyThinkingFormat =
   | 'ant-ling';
 
 export interface CliproxyCompatConfig {
+  reasoning?: boolean;
   thinkingFormat?: CliproxyThinkingFormat;
   supportsReasoningEffort?: boolean;
   maxTokensField?: 'max_completion_tokens' | 'max_tokens';
