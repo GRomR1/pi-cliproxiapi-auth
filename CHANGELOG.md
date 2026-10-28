@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-10-28
+
 ### Added
 
 - Native support for CLIProxyAPI Codex client endpoint (`/v1/models?client_version=pi`) with dual-format response parsing (`models` array alongside standard OpenAI `data` array).
@@ -96,9 +98,9 @@ Initial release as a [pi-mono](https://github.com/earendil-works/pi) (OMP) exten
 - **Runtime API** — `fetchModels`, `clearModelCache`, `refreshModels`, `resolveSettings`, `readSettings`, `writeSettings`, `deleteSettings`, normalizers
 - Unit tests (42) + integration tests (6)
 
-[Unreleased]: https://github.com/GRomR1/pi-cliproxiapi-auth/compare/v1.1.1...main
+[Unreleased]: https://github.com/GRomR1/pi-cliproxiapi-auth/compare/v1.2.0...main
+[1.2.0]: https://github.com/GRomR1/pi-cliproxiapi-auth/compare/v1.1.1...v1.2.0
 [1.1.1]: https://github.com/GRomR1/pi-cliproxiapi-auth/compare/v1.1.0...v1.1.1
-[1.1.0]: https://github.com/GRomR1/pi-cliproxiapi-auth/compare/v1.0.3...v1.1.0
 [1.0.3]: https://github.com/GRomR1/pi-cliproxiapi-auth/compare/v1.0.2...v1.0.3
 [1.0.2]: https://github.com/GRomR1/pi-cliproxiapi-auth/compare/v1.0.1...v1.0.2
 [1.0.1]: https://github.com/GRomR1/pi-cliproxiapi-auth/compare/v1.0.0...v1.0.1
