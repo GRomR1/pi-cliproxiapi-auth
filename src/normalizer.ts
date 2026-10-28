@@ -179,14 +179,20 @@ export function inferThinkingFormat(
   modelId: string,
   ownedBy?: string,
 ): CliproxyThinkingFormat {
+  const lowerOwner = ownedBy?.toLowerCase().trim() ?? '';
   const lowerId = modelId.toLowerCase();
-  const lowerOwner = ownedBy?.toLowerCase() ?? '';
 
-  if (lowerId.includes('deepseek') || lowerOwner === 'deepseek') return 'deepseek';
-  if (lowerId.includes('qwen') || lowerOwner === 'alibaba' || lowerOwner === 'qwen') return 'qwen';
+  // Transport providers take precedence over model architecture
   if (lowerOwner === 'together') return 'together';
   if (lowerOwner === 'openrouter') return 'openrouter';
-  if (lowerId.includes('glm') || lowerOwner === 'zai') return 'zai';
+  if (lowerOwner === 'deepseek') return 'deepseek';
+  if (lowerOwner === 'alibaba' || lowerOwner === 'qwen' || lowerOwner === 'bailian') return 'qwen';
+  if (lowerOwner === 'zai') return 'zai';
+
+  // Fallback: infer from model ID keywords
+  if (lowerId.includes('deepseek')) return 'deepseek';
+  if (lowerId.includes('qwen')) return 'qwen';
+  if (lowerId.includes('glm')) return 'zai';
   return 'openai';
 }
 

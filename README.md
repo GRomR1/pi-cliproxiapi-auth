@@ -153,6 +153,7 @@ The settings file shape:
       "thinkingFormat": "qwen"
     }
   }
+}
 ```
 
 ### `models.json` enrichment

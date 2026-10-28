@@ -127,13 +127,17 @@ test('buildThinkingLevelMap disables unsupported levels with null', () => {
   assert.equal(map.max, null);
 });
 
-test('inferThinkingFormat detects provider dialects from id and owner', () => {
+test('inferThinkingFormat detects provider dialects with owner taking precedence', () => {
   assert.equal(inferThinkingFormat('deepseek-r1', 'deepseek'), 'deepseek');
   assert.equal(inferThinkingFormat('qwen-max', 'alibaba'), 'qwen');
   assert.equal(inferThinkingFormat('glm-4', 'zai'), 'zai');
   assert.equal(inferThinkingFormat('custom-model', 'together'), 'together');
   assert.equal(inferThinkingFormat('custom-model', 'openrouter'), 'openrouter');
   assert.equal(inferThinkingFormat('gpt-5', 'openai'), 'openai');
+
+  // Transport provider takes precedence over model architecture in ID
+  assert.equal(inferThinkingFormat('deepseek/deepseek-r1', 'together'), 'together');
+  assert.equal(inferThinkingFormat('qwen/qwen-2.5-72b', 'openrouter'), 'openrouter');
 });
 
 test('toOmpModel applies thinkingLevelMap and user compat overrides', () => {

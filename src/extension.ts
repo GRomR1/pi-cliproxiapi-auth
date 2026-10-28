@@ -239,13 +239,13 @@ export default async function cliproxyExtension(pi: ExtensionAPI): Promise<void>
       }
 
       const lines = [`CLIProxyAPI Models (${cachedModels.length}):`];
-      for (const m of cachedModels) {
-        const vision = m.supportsVision ? ' [vision]' : '';
-        const reasoning = m.supportsReasoning ? ' [thinking]' : '';
+      const ompModels = toOmpModels(cachedModels, settings);
+      for (const m of ompModels) {
+        const vision = m.input.includes('image') ? ' [vision]' : '';
+        const reasoning = m.reasoning ? ' [thinking]' : '';
         const ctxK = m.contextWindow ? ` ${Math.round(m.contextWindow / 1024)}k` : '';
         lines.push(`• ${m.id}${ctxK}${reasoning}${vision}`);
       }
-
       ctx.ui.notify(lines.join('\n'), 'info');
     },
   });
