@@ -9,10 +9,10 @@ import { join } from 'path';
 import { tmpdir } from 'os';
 import { spawn } from 'child_process';
 
-import { fetchModels, clearModelCache } from '../dist/runtime.js';
+import { fetchModels, clearModelCache, toOmpModel } from '../dist/runtime.js';
 import { loadEnv, requireEnv } from './load-env.mjs';
 
-const PLUGIN_PATH = new URL('../dist/index.js', import.meta.url).pathname;
+const EXTENSION_PATH = new URL('../dist/index.js', import.meta.url).pathname;
 const INTEGRATION_ENABLED = process.env.CLIPROXY_INTEGRATION === '1';
 
 let projectDir;
@@ -76,30 +76,8 @@ before(async () => {
       'https://raw.githubusercontent.com/router-for-me/CLIProxyAPI/refs/heads/main/internal/registry/models/models.json',
   };
 
-  const providerOptions = {
-    baseURL: baseUrl,
-    refreshOnList: true,
-    modelsJsonPath: config.modelsJsonPath,
-    ...(apiKey ? { apiKey } : {}),
-  };
-
   projectDir = join(tmpdir(), `cliproxy-integration-${Date.now()}`);
   await mkdir(projectDir, { recursive: true });
-  await writeFile(
-    join(projectDir, 'opencode.json'),
-    JSON.stringify(
-      {
-        plugin: [`file://${PLUGIN_PATH}`],
-        provider: {
-          cliproxy: {
-            options: providerOptions,
-          },
-        },
-      },
-      null,
-      2,
-    ),
-  );
 });
 
 test('live /v1/models returns models', { skip: !INTEGRATION_ENABLED }, async () => {
@@ -109,24 +87,35 @@ test('live /v1/models returns models', { skip: !INTEGRATION_ENABLED }, async () 
   assert.ok(models.every((m) => typeof m.id === 'string'));
 });
 
-test('live models include reasoning metadata when registry matches', {
+test('live models include thinkingLevelMap and reasoning metadata', {
   skip: !INTEGRATION_ENABLED,
 }, async () => {
   clearModelCache();
   const models = await fetchModels(config, true);
-  const withReasoning = models.filter((m) => m.supportsReasoning || m.variants);
-  assert.ok(withReasoning.length > 0, 'expected some models with thinking metadata');
+  const withThinkingLevels = models.find((m) => m.thinking?.levels && m.thinking.levels.length > 0);
+  assert.ok(withThinkingLevels, 'expected at least one model with thinking.levels');
+
+  const target = toOmpModel(withThinkingLevels, {
+    modelCompat: {
+      [withThinkingLevels.id]: { thinkingFormat: 'deepseek' },
+    },
+  });
+  assert.ok(target.reasoning, 'expected target model to have reasoning enabled');
+  assert.equal(target.compat?.thinkingFormat, 'deepseek');
+  assert.ok(target.thinkingLevelMap, 'expected thinkingLevelMap to be populated');
 });
 
-test('opencode lists cliproxy provider models', { skip: !INTEGRATION_ENABLED }, async () => {
-  const { stdout } = await runCommand('opencode', ['models', 'cliproxy', '--verbose'], {
+test('omp lists cliproxy provider models with thinking column populated', {
+  skip: !INTEGRATION_ENABLED,
+}, async () => {
+  const { stdout } = await runCommand('omp', ['models', '-e', EXTENSION_PATH, 'cliproxy'], {
     cwd: projectDir,
     timeoutMs: 120_000,
   });
-  assert.match(stdout, /cliproxy\//);
-  assert.match(stdout, /providerID.*cliproxy/);
+  assert.match(stdout, /cliproxy/);
+  // Verify thinking column contains populated levels (not just '-')
+  assert.match(stdout, /(?:minimal|low|medium|high)/);
 });
-
 test('live chat completion via /v1/chat/completions', { skip: !INTEGRATION_ENABLED }, async () => {
   clearModelCache();
   const models = await fetchModels(config, true);
@@ -148,13 +137,14 @@ test('live chat completion via /v1/chat/completions', { skip: !INTEGRATION_ENABL
     body: JSON.stringify({
       model: modelId,
       messages: [{ role: 'user', content: 'Reply with exactly: API_OK' }],
-      max_tokens: 16,
+      max_tokens: 64,
     }),
   });
 
   assert.equal(response.status, 200, `chat completion failed: ${response.status}`);
   const body = await response.json();
-  const text = body.choices?.[0]?.message?.content ?? '';
+  const message = body.choices?.[0]?.message;
+  const text = (message?.content ?? '') + (message?.reasoning ?? '') + (message?.reasoning_content ?? '');
   assert.match(text, /API_OK/i);
 });
 

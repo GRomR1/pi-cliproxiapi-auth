@@ -27,5 +27,5 @@ jobs:
       - name: Unit tests
         run: npm test
 
-      - name: Validate plugin exports
+      - name: Validate extension exports
         run: npm run check:exports

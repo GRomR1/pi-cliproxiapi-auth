@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.1] - 2026-10-27
+
+### Fixed
+
+- Ported live integration tests from `opencode` to native `omp models` CLI.
+- Updated live chat-completion integration assertions to handle reasoning outputs and thinking content.
+- Cleaned up legacy OpenCode/plugin references across CI workflows, test suite, and LICENSE copyright.
+
 ## [1.1.0] - 2026-10-27
 
 ### Added
@@ -80,7 +88,8 @@ Initial release as a [pi-mono](https://github.com/earendil-works/pi) (OMP) exten
 - **Runtime API** — `fetchModels`, `clearModelCache`, `refreshModels`, `resolveSettings`, `readSettings`, `writeSettings`, `deleteSettings`, normalizers
 - Unit tests (42) + integration tests (6)
 
-[Unreleased]: https://github.com/GRomR1/pi-cliproxiapi-auth/compare/v1.1.0...main
+[Unreleased]: https://github.com/GRomR1/pi-cliproxiapi-auth/compare/v1.1.1...main
+[1.1.1]: https://github.com/GRomR1/pi-cliproxiapi-auth/compare/v1.1.0...v1.1.1
 [1.1.0]: https://github.com/GRomR1/pi-cliproxiapi-auth/compare/v1.0.3...v1.1.0
 [1.0.3]: https://github.com/GRomR1/pi-cliproxiapi-auth/compare/v1.0.2...v1.0.3
 [1.0.2]: https://github.com/GRomR1/pi-cliproxiapi-auth/compare/v1.0.1...v1.0.2
