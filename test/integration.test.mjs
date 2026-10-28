@@ -105,6 +105,33 @@ test('live models include thinkingLevelMap and reasoning metadata', {
   assert.ok(target.thinkingLevelMap, 'expected thinkingLevelMap to be populated');
 });
 
+test('live models populate contextWindow and vision from client_version endpoint and support overrides', {
+  skip: !INTEGRATION_ENABLED,
+}, async () => {
+  clearModelCache();
+  const models = await fetchModels(config, true);
+  const visionModels = models.filter((m) => m.supportsVision);
+  assert.ok(visionModels.length > 0, 'expected at least one model with vision support');
+
+  const laguna = models.find((m) => m.id.includes('laguna'));
+  if (laguna) {
+    assert.equal(laguna.contextWindow, 872000, 'expected laguna contextWindow to be 872000 from max_context_window');
+    assert.equal(laguna.supportsVision, true, 'expected laguna to support vision from input_modalities');
+  }
+
+  const sample = models[0];
+  const overridden = toOmpModel(sample, {
+    modelCompat: {
+      [sample.id]: {
+        contextWindow: 524288,
+        vision: false,
+      },
+    },
+  });
+  assert.equal(overridden.contextWindow, 524288);
+  assert.deepEqual(overridden.input, ['text']);
+});
+
 test('omp lists cliproxy provider models with thinking column populated', {
   skip: !INTEGRATION_ENABLED,
 }, async () => {

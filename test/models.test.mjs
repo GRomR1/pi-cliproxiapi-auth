@@ -186,3 +186,60 @@ test('fetchModels enriches from models.json URL', async () => {
   assert.ok(models[0].thinking);
   assert.deepEqual(models[0].thinking.levels, ['low', 'high', 'max']);
 });
+
+test('fetchModels parses codex client format response from client_version=pi', async () => {
+  global.fetch = async (input) => {
+    const url = input instanceof Request ? input.url : input.toString();
+    if (url.includes('/models?client_version=pi')) {
+      return new Response(
+        JSON.stringify({
+          models: [
+            {
+              slug: 'laguna-s-2.1',
+              display_name: 'Laguna 2.1',
+              max_context_window: 872000,
+              context_window: 500000,
+              input_modalities: ['text', 'image'],
+              supported_reasoning_levels: [{ effort: 'low' }, { effort: 'medium' }],
+            },
+          ],
+        }),
+        { status: 200, headers: { 'Content-Type': 'application/json' } },
+      );
+    }
+    return new Response('{}', { status: 200 });
+  };
+
+  const models = await fetchModels(CONFIG, true);
+  assert.equal(models.length, 1);
+  assert.equal(models[0].id, 'laguna-s-2.1');
+  assert.equal(models[0].name, 'Laguna 2.1');
+  assert.equal(models[0].contextWindow, 872000);
+  assert.equal(models[0].supportsVision, true);
+  assert.equal(models[0].supportsReasoning, true);
+});
+
+test('fetchModels falls back to endpoint without query param if client_version is rejected with 400', async () => {
+  let calledWithoutQuery = false;
+  global.fetch = async (input) => {
+    const url = input instanceof Request ? input.url : input.toString();
+    if (url.includes('client_version=pi')) {
+      return new Response('Bad Request', { status: 400 });
+    }
+    if (url.endsWith('/models')) {
+      calledWithoutQuery = true;
+      return new Response(
+        JSON.stringify({
+          object: 'list',
+          data: [{ id: 'fallback-model', name: 'Fallback' }],
+        }),
+        { status: 200, headers: { 'Content-Type': 'application/json' } },
+      );
+    }
+    return new Response('{}', { status: 200 });
+  };
+
+  const models = await fetchModels(CONFIG, true);
+  assert.equal(calledWithoutQuery, true);
+  assert.equal(models[0].id, 'fallback-model');
+});

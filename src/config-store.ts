@@ -130,12 +130,18 @@ function sanitizeCompat(raw: Record<string, unknown>): CliproxyExtensionSettings
     raw.maxTokensField === 'max_completion_tokens' || raw.maxTokensField === 'max_tokens'
       ? raw.maxTokensField
       : undefined;
+  const contextWindow = isPositiveNumber(raw.contextWindow) ? raw.contextWindow : undefined;
+  const maxTokens = isPositiveNumber(raw.maxTokens) ? raw.maxTokens : undefined;
+  const vision = isBoolean(raw.vision) ? raw.vision : undefined;
 
   const hasAny =
     reasoning !== undefined ||
     thinkingFormat !== undefined ||
     supportsReasoningEffort !== undefined ||
-    maxTokensField !== undefined;
+    maxTokensField !== undefined ||
+    contextWindow !== undefined ||
+    maxTokens !== undefined ||
+    vision !== undefined;
   if (!hasAny) return undefined;
 
   return {
@@ -143,9 +149,11 @@ function sanitizeCompat(raw: Record<string, unknown>): CliproxyExtensionSettings
     ...(thinkingFormat ? { thinkingFormat } : {}),
     ...(supportsReasoningEffort !== undefined ? { supportsReasoningEffort } : {}),
     ...(maxTokensField ? { maxTokensField } : {}),
+    ...(contextWindow !== undefined ? { contextWindow } : {}),
+    ...(maxTokens !== undefined ? { maxTokens } : {}),
+    ...(vision !== undefined ? { vision } : {}),
   };
 }
-
 function sanitizeModelCompat(raw: Record<string, unknown>): CliproxyExtensionSettings['modelCompat'] {
   const result: NonNullable<CliproxyExtensionSettings['modelCompat']> = {};
   for (const [modelId, config] of Object.entries(raw)) {

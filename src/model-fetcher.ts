@@ -43,19 +43,29 @@ async function fetchApiModels(
 ): Promise<CliproxyModel[]> {
   const rawBase = config.baseUrl || CLIPROXY_ENDPOINTS.BASE_URL;
   const baseUrl = rawBase.replace(/\/+$/, '');
-  const modelsUrl = `${baseUrl}${CLIPROXY_ENDPOINTS.MODELS}`;
+  const clientVersionUrl = `${baseUrl}${CLIPROXY_ENDPOINTS.MODELS}?client_version=pi`;
+  const defaultModelsUrl = `${baseUrl}${CLIPROXY_ENDPOINTS.MODELS}`;
 
-  debug(`Fetching models from ${modelsUrl}`);
+  debug(`Fetching models from ${clientVersionUrl}`);
 
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT);
 
   try {
-    const response = await fetch(modelsUrl, {
+    let response = await fetch(clientVersionUrl, {
       method: 'GET',
       headers: buildAuthHeaders(config.apiKey),
       signal: controller.signal,
     });
+
+    if (!response.ok && (response.status === 400 || response.status === 404)) {
+      debug(`client_version query not supported (${response.status}), falling back to ${defaultModelsUrl}`);
+      response = await fetch(defaultModelsUrl, {
+        method: 'GET',
+        headers: buildAuthHeaders(config.apiKey),
+        signal: controller.signal,
+      });
+    }
 
     if (!response.ok) {
       warn(`Failed to fetch models: ${response.status} ${response.statusText}`);
@@ -63,17 +73,26 @@ async function fetchApiModels(
     }
 
     const rawData: unknown = await response.json();
-    if (
-      !rawData ||
-      typeof rawData !== 'object' ||
-      !Array.isArray((rawData as CliproxyModelsResponse).data)
-    ) {
+    let rawList: unknown[] | undefined;
+    if (rawData && typeof rawData === 'object') {
+      if ('models' in rawData && Array.isArray(rawData.models)) {
+        rawList = rawData.models;
+      } else if ('data' in rawData && Array.isArray(rawData.data)) {
+        rawList = rawData.data;
+      }
+    }
+
+    if (!rawList) {
       throw new Error('Invalid models response structure');
     }
 
-    const data = rawData as CliproxyModelsResponse;
-    return data.data
-      .filter((m) => m && typeof m.id === 'string')
+    return rawList
+      .filter((m): m is Record<string, unknown> => Boolean(m && typeof m === 'object'))
+      .filter(
+        (m) =>
+          (typeof m.id === 'string' && m.id.trim().length > 0) ||
+          (typeof m.slug === 'string' && m.slug.trim().length > 0),
+      )
       .map(normalizeApiModel);
   } finally {
     clearTimeout(timeoutId);

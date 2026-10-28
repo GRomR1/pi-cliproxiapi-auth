@@ -150,11 +150,31 @@ The settings file shape:
   },
   "modelCompat": {
     "custom-qwen-model": {
-      "thinkingFormat": "qwen"
+      "thinkingFormat": "qwen",
+      "reasoning": true
+    },
+    "laguna-s-2.1": {
+      "contextWindow": 524288,
+      "maxTokens": 32768,
+      "vision": true
     }
   }
 }
 ```
+
+### Compatibility & Model Overrides (`compat` and `modelCompat`)
+
+Global (`compat`) and per-model (`modelCompat`) settings allow tuning provider dialects and overriding limits:
+
+| Option                    | Type    | Description                                                              |
+| ------------------------- | ------- | ------------------------------------------------------------------------ |
+| `thinkingFormat`          | string  | Thinking dialect (`openai`, `qwen`, `deepseek`, `together`, `zai`, etc.) |
+| `reasoning`               | boolean | Explicitly enable or disable reasoning capabilities                      |
+| `contextWindow`           | number  | Explicitly set model context window size in tokens                       |
+| `maxTokens`               | number  | Explicitly set maximum output tokens                                     |
+| `vision`                  | boolean | Explicitly enable or disable image input modality                        |
+| `supportsReasoningEffort` | boolean | Forward reasoning effort in requests                                     |
+| `maxTokensField`          | string  | `max_completion_tokens` or `max_tokens`                                  |
 
 ### `models.json` enrichment
 

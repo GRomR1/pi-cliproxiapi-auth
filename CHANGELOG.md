@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Native support for CLIProxyAPI Codex client endpoint (`/v1/models?client_version=pi`) with dual-format response parsing (`models` array alongside standard OpenAI `data` array).
+- Direct extraction of `max_context_window` and `context_window` from upstream models response, honoring proxy-level `max-context-length` overrides.
+- Multimodal input support (`supportsVision`) derived from `input_modalities` and `supportedInputModalities`.
+- Explicit per-model and global overrides in `compat` / `modelCompat` for `contextWindow`, `maxTokens`, and `vision`.
+- Graceful fallback to `/v1/models` when upstream endpoints reject `?client_version=pi` with 400/404.
+
 ## [1.1.1] - 2026-10-27
 
 ### Fixed
