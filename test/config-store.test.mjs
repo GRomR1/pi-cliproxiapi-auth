@@ -80,6 +80,37 @@ test('readSettings sanitizes modelsDev sub-config', async () => {
   assert.equal(result.modelsDev?.providerAliases?.bad, undefined);
 });
 
+test('readSettings sanitizes compat and modelCompat configs', async () => {
+  const dir = join(tempHome, 'pi', 'agent');
+  mkdirSync(dir, { recursive: true });
+  writeFileSync(
+    join(dir, 'cliproxy.json'),
+    JSON.stringify({
+      baseURL: 'http://example.com/v1',
+      apiKey: 'k',
+      compat: {
+        thinkingFormat: 'deepseek',
+        supportsReasoningEffort: true,
+        invalidProp: 123,
+      },
+      modelCompat: {
+        'custom-qwen': {
+          reasoning: true,
+          thinkingFormat: 'qwen',
+        },
+        'bad-model': 'not-an-object',
+      },
+    }),
+    'utf-8',
+  );
+
+  const result = await readSettings();
+  assert.equal(result.compat?.thinkingFormat, 'deepseek');
+  assert.equal(result.compat?.supportsReasoningEffort, true);
+  assert.equal(result.modelCompat?.['custom-qwen']?.reasoning, true);
+  assert.equal(result.modelCompat?.['custom-qwen']?.thinkingFormat, 'qwen');
+});
+
 test('writeSettings sets file permissions to 0o600 on new and existing files', async () => {
   const path = getSettingsPath();
 

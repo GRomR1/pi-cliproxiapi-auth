@@ -17,6 +17,8 @@ interface ResolvedSettings {
   apiKey: string;
   modelsJsonPath: string;
   modelsDev?: CliproxyExtensionSettings['modelsDev'];
+  compat?: CliproxyExtensionSettings['compat'];
+  modelCompat?: CliproxyExtensionSettings['modelCompat'];
 }
 
 function readString(value: string | undefined, fallback: string): string {
@@ -70,6 +72,8 @@ export async function resolveSettings(
     apiKey,
     modelsJsonPath,
     ...(stored?.modelsDev ? { modelsDev: stored.modelsDev } : {}),
+    ...(stored?.compat ? { compat: stored.compat } : {}),
+    ...(stored?.modelCompat ? { modelCompat: stored.modelCompat } : {}),
   };
 }
 
@@ -79,6 +83,8 @@ function buildFetcherConfig(settings: ResolvedSettings): CliproxyConfig {
     apiKey: settings.apiKey,
     modelsJsonPath: settings.modelsJsonPath,
     ...(settings.modelsDev ? { modelsDev: settings.modelsDev } : {}),
+    ...(settings.compat ? { compat: settings.compat } : {}),
+    ...(settings.modelCompat ? { modelCompat: settings.modelCompat } : {}),
   };
 }
 
@@ -86,8 +92,13 @@ function buildFetcherConfig(settings: ResolvedSettings): CliproxyConfig {
  * Convert normalized models to OMP model format. Returns at least the fallback
  * defaults so the provider is never empty.
  */
-function toOmpModels(models: CliproxyModel[]): OmpModel[] {
-  return models.map(toOmpModel);
+function toOmpModels(models: CliproxyModel[], settings: ResolvedSettings): OmpModel[] {
+  return models.map((m) =>
+    toOmpModel(m, {
+      compat: settings.compat,
+      modelCompat: settings.modelCompat,
+    }),
+  );
 }
 
 /** OMP extension factory — the default export. */
@@ -114,7 +125,7 @@ export default async function cliproxyExtension(pi: ExtensionAPI): Promise<void>
   }
 
   function registerProvider(models: CliproxyModel[]): void {
-    const ompModels = toOmpModels(models);
+    const ompModels = toOmpModels(models, settings);
     pi.registerProvider(CLIPROXY_PROVIDER_ID, {
       name: CLIPROXY_PROVIDER_NAME,
       baseUrl: settings.baseURL,
@@ -167,6 +178,8 @@ export default async function cliproxyExtension(pi: ExtensionAPI): Promise<void>
           ? undefined
           : settings.modelsJsonPath,
         ...(settings.modelsDev ? { modelsDev: settings.modelsDev } : {}),
+        ...(settings.compat ? { compat: settings.compat } : {}),
+        ...(settings.modelCompat ? { modelCompat: settings.modelCompat } : {}),
       };
 
       try {
@@ -181,6 +194,8 @@ export default async function cliproxyExtension(pi: ExtensionAPI): Promise<void>
         apiKey,
         modelsJsonPath: settings.modelsJsonPath,
         ...(settings.modelsDev ? { modelsDev: settings.modelsDev } : {}),
+        ...(settings.compat ? { compat: settings.compat } : {}),
+        ...(settings.modelCompat ? { modelCompat: settings.modelCompat } : {}),
       };
       clearModelCache();
       const models = await refreshModels();
@@ -210,6 +225,27 @@ export default async function cliproxyExtension(pi: ExtensionAPI): Promise<void>
         `models.json: ${settings.modelsJsonPath}`,
         `Models: ${cachedModels.length}`,
       ];
+      ctx.ui.notify(lines.join('\n'), 'info');
+    },
+  });
+
+  // /cliproxy-models — list available models with thinking & vision specs.
+  pi.registerCommand('cliproxy-models', {
+    description: 'List available CLIProxyAPI models and their thinking/vision capabilities',
+    handler: async (_args, ctx) => {
+      if (cachedModels.length === 0) {
+        ctx.ui.notify('No models currently available', 'warning');
+        return;
+      }
+
+      const lines = [`CLIProxyAPI Models (${cachedModels.length}):`];
+      const ompModels = toOmpModels(cachedModels, settings);
+      for (const m of ompModels) {
+        const vision = m.input.includes('image') ? ' [vision]' : '';
+        const reasoning = m.reasoning ? ' [thinking]' : '';
+        const ctxK = m.contextWindow ? ` ${Math.round(m.contextWindow / 1024)}k` : '';
+        lines.push(`• ${m.id}${ctxK}${reasoning}${vision}`);
+      }
       ctx.ui.notify(lines.join('\n'), 'info');
     },
   });

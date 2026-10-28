@@ -1,7 +1,9 @@
 import type {
+  CliproxyCompatConfig,
   CliproxyModel,
   CliproxyRegistryModel,
   CliproxyThinking,
+  CliproxyThinkingFormat,
 } from './types.js';
 import { DEFAULT_CONTEXT_LIMIT, DEFAULT_OUTPUT_LIMIT } from './constants.js';
 
@@ -137,6 +139,63 @@ export function getModelFamily(modelId: string): string {
   return family || base;
 }
 
+export type ThinkingLevel = 'off' | 'minimal' | 'low' | 'medium' | 'high' | 'xhigh' | 'max';
+export type ThinkingLevelMap = Partial<Record<ThinkingLevel, string | null>>;
+
+const ALL_THINKING_LEVELS: readonly ThinkingLevel[] = [
+  'minimal',
+  'low',
+  'medium',
+  'high',
+  'xhigh',
+  'max',
+];
+
+/** Build pi thinkingLevelMap from CLIProxyAPI thinking metadata. */
+export function buildThinkingLevelMap(
+  thinking?: CliproxyThinking,
+  supportsReasoning?: boolean,
+): ThinkingLevelMap | undefined {
+  if (!supportsReasoning && !thinking) return undefined;
+
+  if (thinking?.levels && thinking.levels.length > 0) {
+    const supported = new Set(thinking.levels.map((l) => l.toLowerCase()));
+    const map: ThinkingLevelMap = {};
+    for (const level of ALL_THINKING_LEVELS) {
+      if (supported.has(level)) {
+        map[level] = level;
+      } else {
+        map[level] = null;
+      }
+    }
+    return map;
+  }
+
+  return undefined;
+}
+
+/** Infer default thinking format based on model ID, provider, or vendor. */
+export function inferThinkingFormat(
+  modelId: string,
+  ownedBy?: string,
+): CliproxyThinkingFormat {
+  const lowerOwner = ownedBy?.toLowerCase().trim() ?? '';
+  const lowerId = modelId.toLowerCase();
+
+  // Transport providers take precedence over model architecture
+  if (lowerOwner === 'together') return 'together';
+  if (lowerOwner === 'openrouter') return 'openrouter';
+  if (lowerOwner === 'deepseek') return 'deepseek';
+  if (lowerOwner === 'alibaba' || lowerOwner === 'qwen' || lowerOwner === 'bailian') return 'qwen';
+  if (lowerOwner === 'zai') return 'zai';
+
+  // Fallback: infer from model ID keywords
+  if (lowerId.includes('deepseek')) return 'deepseek';
+  if (lowerId.includes('qwen')) return 'qwen';
+  if (lowerId.includes('glm')) return 'zai';
+  return 'openai';
+}
+
 /**
  * Shape of a model that the OMP `registerProvider` API expects. We keep this
  * as a local type so the rest of the codebase can stay agnostic of OMP's
@@ -146,21 +205,60 @@ export interface OmpModel {
   id: string;
   name: string;
   reasoning: boolean;
+  thinkingLevelMap?: ThinkingLevelMap;
+  compat?: {
+    thinkingFormat?: CliproxyThinkingFormat;
+    supportsReasoningEffort?: boolean;
+    maxTokensField?: 'max_completion_tokens' | 'max_tokens';
+  };
   input: ('text' | 'image')[];
   cost: { input: number; output: number; cacheRead: number; cacheWrite: number };
   contextWindow: number;
   maxTokens: number;
 }
 
-/** Convert a normalized `CliproxyModel` to the OMP `Model` shape. */
-export function toOmpModel(model: CliproxyModel): OmpModel {
+/** Convert a normalized `CliproxyModel` to the OMP `Model` shape with thinking config. */
+export function toOmpModel(
+  model: CliproxyModel,
+  options?: {
+    compat?: CliproxyCompatConfig;
+    modelCompat?: Record<string, CliproxyCompatConfig>;
+  },
+): OmpModel {
   const supportsVision = model.supportsVision === true;
-  const supportsReasoning = model.supportsReasoning === true;
+  const userModelCompat = options?.modelCompat?.[model.id];
+  const userDefaultCompat = options?.compat;
+
+  const isReasonerName = /(?:^|[-_/])(r1|thinking|reasoner)(?:[-_.]|$)/i.test(model.id);
+  const supportsReasoning =
+    userModelCompat?.reasoning ??
+    userDefaultCompat?.reasoning ??
+    (model.supportsReasoning === true || isReasonerName);
+  const thinkingLevelMap = buildThinkingLevelMap(model.thinking, supportsReasoning);
+
+  let compat: OmpModel['compat'] = undefined;
+  if (supportsReasoning) {
+    const defaultFormat = inferThinkingFormat(model.id, model.ownedBy);
+    const format = userModelCompat?.thinkingFormat ?? userDefaultCompat?.thinkingFormat ?? defaultFormat;
+    const supportsReasoningEffort =
+      userModelCompat?.supportsReasoningEffort ??
+      userDefaultCompat?.supportsReasoningEffort ??
+      (format === 'openai' || format === 'openrouter' || format === 'deepseek' || format === 'together');
+    const maxTokensField = userModelCompat?.maxTokensField ?? userDefaultCompat?.maxTokensField;
+
+    compat = {
+      thinkingFormat: format,
+      supportsReasoningEffort,
+      ...(maxTokensField ? { maxTokensField } : {}),
+    };
+  }
 
   return {
     id: model.id,
     name: model.name || model.id,
     reasoning: supportsReasoning,
+    ...(thinkingLevelMap ? { thinkingLevelMap } : {}),
+    ...(compat ? { compat } : {}),
     input: supportsVision ? ['text', 'image'] : ['text'],
     cost: {
       input: model.pricing?.input ?? 0,

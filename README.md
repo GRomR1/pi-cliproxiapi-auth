@@ -119,12 +119,13 @@ pi -m cliproxy/gpt-5.4-mini
 
 ## Commands
 
-| Command             | Description                                                |
-| ------------------- | ---------------------------------------------------------- |
-| `/cliproxy-connect` | Configure base URL and API key (interactive).              |
-| `/cliproxy-refresh` | Force-refresh the model list from the server.              |
-| `/cliproxy-status`  | Show the current base URL, API key state, and model count. |
-| `/cliproxy-logout`  | Clear the saved credentials.                               |
+| Command             | Description                                                   |
+| ------------------- | ------------------------------------------------------------- |
+| `/cliproxy-connect` | Configure base URL and API key (interactive).                 |
+| `/cliproxy-refresh` | Force-refresh the model list from the server.                 |
+| `/cliproxy-status`  | Show the current base URL, API key state, and model count.    |
+| `/cliproxy-models`  | List models with their context, thinking, and vision support. |
+| `/cliproxy-logout`  | Clear the saved credentials.                                  |
 
 ## Configuration
 
@@ -143,6 +144,14 @@ The settings file shape:
   "modelsJsonPath": "https://raw.githubusercontent.com/router-for-me/CLIProxyAPI/refs/heads/main/internal/registry/models/models.json",
   "modelsDev": {
     "enabled": true
+  },
+  "compat": {
+    "thinkingFormat": "openai"
+  },
+  "modelCompat": {
+    "custom-qwen-model": {
+      "thinkingFormat": "qwen"
+    }
   }
 }
 ```
