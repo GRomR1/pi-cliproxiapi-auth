@@ -210,6 +210,15 @@ test('normalizeApiModel parses codex client format with max_context_window, inpu
   assert.deepEqual(normalized.thinking?.levels, ['low', 'medium', 'high']);
 });
 
+test('normalizeApiModel detects vision from supports_image_detail_original even if input_modalities lacks image', () => {
+  const model = normalizeApiModel({
+    id: 'test-model',
+    input_modalities: ['text'],
+    supports_image_detail_original: true,
+  });
+  assert.equal(model.supportsVision, true);
+});
+
 test('toOmpModel applies contextWindow, maxTokens, and vision overrides', () => {
   const model = {
     id: 'laguna-s-2.1',

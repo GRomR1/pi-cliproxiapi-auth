@@ -91,10 +91,12 @@ export function normalizeApiModel(model: {
       ? model.supportedInputModalities
       : undefined;
 
-  const supportsVision = modalities
-    ? modalities.some((m) => typeof m === 'string' && m.toLowerCase().trim() === 'image')
-    : (model.supports_image_detail_original === true ? true : undefined);
+  const hasImageModality = modalities?.some((m) => typeof m === 'string' && m.toLowerCase().trim() === 'image');
+  const hasImageDetail = model.supports_image_detail_original === true;
 
+  const supportsVision = hasImageModality || hasImageDetail
+    ? true
+    : (modalities ? false : undefined);
   let thinking: CliproxyThinking | undefined;
   if (model.thinking && typeof model.thinking === 'object') {
     thinking = model.thinking as CliproxyThinking;
@@ -148,10 +150,12 @@ export function normalizeRegistryModel(model: CliproxyRegistryModel): CliproxyMo
     : Array.isArray(model.input_modalities)
       ? model.input_modalities
       : undefined;
+  const hasImageModality = modalities?.some((m) => typeof m === 'string' && m.toLowerCase().trim() === 'image');
+  const hasImageDetail = model.supports_image_detail_original === true;
 
-  const supportsVision = modalities
-    ? modalities.some((m) => typeof m === 'string' && m.toLowerCase().trim() === 'image')
-    : undefined;
+  const supportsVision = hasImageModality || hasImageDetail
+    ? true
+    : (modalities ? false : undefined);
 
   return {
     id: model.id,
